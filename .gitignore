@@ -1,0 +1,13 @@
+
+# Env vars
+.env
+
+# macOS
+.DS_Store
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Keep only placeholders inside mounted volumes; real contents are ignored via local .gitignore files
+# See: config/.gitignore, data/.gitignore, downloads/.gitignore
