@@ -41,6 +41,13 @@ T-media/
 - `TZ`: zona horaria.
 - `PLEX_CLAIM`: token opcional para reclamar Plex.
 
+### VPN (WireGuard con Gluetun)
+- `VPN_SERVICE_PROVIDER`: por ejemplo `mullvad`, `protonvpn` o `custom`.
+- `VPN_TYPE`: dejar en `wireguard`.
+- `WIREGUARD_PRIVATE_KEY` y `WIREGUARD_ADDRESSES`: del perfil WireGuard.
+- Si usas `custom`: también `WIREGUARD_PUBLIC_KEY`, `WIREGUARD_ENDPOINT_IP`, `WIREGUARD_ENDPOINT_PORT`.
+- `FIREWALL_OUTBOUND_SUBNETS`: subred(es) LAN permitidas (ej. `192.168.0.0/16`).
+
 
 ## Primeros pasos en las apps
 
@@ -77,7 +84,26 @@ T-media/
 ## Notas
 
 - Radarr/Sonarr y Transmission comparten `/downloads`, por lo que NO necesitas Remote Path Mapping.
-- Para enlazar Radarr/Sonarr con Transmission:
-  - Host `transmission`, puerto `9091` (o `localhost:9091`).
+- Para enlazar Radarr/Sonarr con Transmission cuando TODO está detrás de la VPN:
+  - En Radarr/Sonarr, cliente de descargas Transmission: URL `http://localhost:9091` (comparten stack de red con Gluetun).
+  - Desde tu host (navegador): http://localhost:9091.
   - Usuario/contraseña si configuraste `USER`/`PASS`.
 - Con Prowlarr centralizas los indexers y los replicas a Sonarr/Radarr (evita configurarlos en cada app).
+
+## VPN: todo el tráfico del stack por WireGuard
+
+Este stack incluye un cliente VPN (`gluetun`) que levanta un túnel WireGuard y enruta TODO el tráfico de Transmission, Prowlarr, Radarr, Sonarr y Plex a través de él. Los puertos de todas estas apps se publican desde el contenedor `gluetun` (9091, 9696, 7878, 8989, 32400, etc.).
+
+Pasos:
+- Consigue las credenciales/perfil WireGuard de tu proveedor (claves y endpoint).
+- Rellena las variables en `.env` (sección VPN).
+- Levanta el stack: `docker compose up -d`.
+
+Notas:
+- Dentro de Prowlarr (Settings → Apps), usa estas URLs: (tuve que usar 127.0.0.1, porque localhost fallaba el check de ipv6)
+  - Radarr: `http://localhost:7878`
+  - Sonarr: `http://localhost:8989`
+  - Transmission: `http://localhost:9091`
+  - Instance URL de Prowlarr: `http://localhost:9696`
+- Desde tu host, accedes igual por `http://localhost:<puerto>`.
+- Si detectas problemas de descubrimiento DLNA de Plex tras la VPN, puedes desactivarlo o usar acceso directo por `http://localhost:32400/web`.
