@@ -9,5 +9,7 @@
 .vscode/
 .idea/
 
+.wireguard.conf
+
 # Keep only placeholders inside mounted volumes; real contents are ignored via local .gitignore files
 # See: config/.gitignore, data/.gitignore, downloads/.gitignore
